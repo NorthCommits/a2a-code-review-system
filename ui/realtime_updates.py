@@ -141,19 +141,18 @@ class RealTimeUpdates:
     
     def display_agent_capabilities(self):
         """Display agent capabilities"""
-        st.subheader("Agent Capabilities")
-        
         capabilities = self.get_agent_capabilities()
         
         for agent_type, caps in capabilities.items():
-            with st.expander(f"{agent_type.title()} Agent Capabilities"):
-                if caps:
-                    for cap in caps:
-                        st.write(f"**{cap.get('name', 'Unknown')}**: {cap.get('description', 'No description')}")
-                        if cap.get('parameters'):
-                            st.caption(f"Parameters: {cap['parameters']}")
-                else:
-                    st.info("No capabilities available (agent offline)")
+            st.write(f"**{agent_type.title()} Agent:**")
+            if caps:
+                for cap in caps:
+                    st.write(f"- **{cap.get('name', 'Unknown')}**: {cap.get('description', 'No description')}")
+                    if cap.get('parameters'):
+                        st.caption(f"  Parameters: {cap['parameters']}")
+            else:
+                st.info("No capabilities available (agent offline)")
+            st.write("---")
     
     def stream_agent_events(self, agent_type: str, duration: int = 30):
         """Stream real-time events from an agent"""

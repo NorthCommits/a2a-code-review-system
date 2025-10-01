@@ -64,9 +64,13 @@ class TestCoverageAgent(RemoteAgent):
             port=port
         )
         
-        self.logger = A2ALogger("test-coverage-001", "remote")
-        
-        self.logger.info("Test coverage agent initialized")
+        # Logger will be initialized when needed to avoid pickling issues
+        pass
+    
+    def _get_logger(self):
+        """Get logger instance (lazy initialization to avoid pickling issues)"""
+        # Create a new logger instance each time to avoid pickling issues
+        return A2ALogger("test-coverage-001", "remote")
     
     async def analyze_code(self, task_params: Dict[str, Any]) -> Optional[AnalysisResult]:
         """
@@ -95,7 +99,7 @@ class TestCoverageAgent(RemoteAgent):
                     }]
                 )
             
-            self.logger.info(f"Starting test coverage analysis for {language} code")
+            self._get_logger().info(f"Starting test coverage analysis for {language} code")
             
             # Test coverage analysis logic
             observations = []
@@ -132,11 +136,11 @@ class TestCoverageAgent(RemoteAgent):
                 }
             )
             
-            self.logger.info(f"Test coverage analysis completed: score {coverage_score}/100")
+            self._get_logger().info(f"Test coverage analysis completed: score {coverage_score}/100")
             return result
             
         except Exception as e:
-            self.logger.error(f"Test coverage analysis failed: {e}")
+            self._get_logger().error(f"Test coverage analysis failed: {e}")
             return self.create_analysis_result(
                 task_id=task_params.get("task_id", "unknown"),
                 status=TaskStatus.FAILED,

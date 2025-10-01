@@ -65,10 +65,23 @@ class SyntaxAgent(RemoteAgent):
             port=port
         )
         
-        self.logger = A2ALogger("syntax-analyzer-001", "remote")
-        self.analyzer = SyntaxAnalyzer()
+        # Initialize analyzer lazily to avoid pickling issues
+        self._analyzer = None
         
-        self.logger.info("Syntax agent initialized")
+        # Log initialization
+        self._get_logger().info("Syntax agent initialized")
+    
+    def _get_analyzer(self):
+        """Get analyzer instance (lazy initialization to avoid pickling issues)"""
+        if self._analyzer is None:
+            from analyzers.syntax_analyzer import SyntaxAnalyzer
+            self._analyzer = SyntaxAnalyzer()
+        return self._analyzer
+    
+    def _get_logger(self):
+        """Get logger instance (lazy initialization to avoid pickling issues)"""
+        # Create a new logger instance each time to avoid pickling issues
+        return A2ALogger("syntax-analyzer-001", "remote")
     
     async def analyze_code(self, task_params: Dict[str, Any]) -> Optional[AnalysisResult]:
         """
@@ -97,10 +110,10 @@ class SyntaxAgent(RemoteAgent):
                     }]
                 )
             
-            self.logger.info(f"Starting syntax analysis for {language} code")
+            self._get_logger().info(f"Starting syntax analysis for {language} code")
             
             # Perform analysis
-            analysis_result = await self.analyzer.analyze_code(code, language, options)
+            analysis_result = await self._get_analyzer().analyze_code(code, language, options)
             
             # Convert to standard format
             observations = analysis_result.get("observations", [])
@@ -124,11 +137,11 @@ class SyntaxAgent(RemoteAgent):
                 }
             )
             
-            self.logger.info(f"Syntax analysis completed with {len(errors)} errors and {len(suggestions)} suggestions")
+            self._get_logger().info(f"Syntax analysis completed with {len(errors)} errors and {len(suggestions)} suggestions")
             return result
             
         except Exception as e:
-            self.logger.error(f"Error in syntax analysis: {e}")
+            self._get_logger().error(f"Error in syntax analysis: {e}")
             return self.create_analysis_result(
                 task_id=task_params.get("task_id", "unknown"),
                 status=TaskStatus.FAILED,
@@ -150,10 +163,10 @@ class SyntaxAgent(RemoteAgent):
         try:
             success = await super().start()
             if success:
-                self.logger.info(f"Syntax agent started successfully on port {self.port}")
+                self._get_logger().info(f"Syntax agent started successfully on port {self.port}")
             return success
         except Exception as e:
-            self.logger.error(f"Failed to start syntax agent: {e}")
+            self._get_logger().error(f"Failed to start syntax agent: {e}")
             return False
     
     async def stop(self) -> bool:
@@ -166,10 +179,10 @@ class SyntaxAgent(RemoteAgent):
         try:
             success = await super().stop()
             if success:
-                self.logger.info("Syntax agent stopped successfully")
+                self._get_logger().info("Syntax agent stopped successfully")
             return success
         except Exception as e:
-            self.logger.error(f"Failed to stop syntax agent: {e}")
+            self._get_logger().error(f"Failed to stop syntax agent: {e}")
             return False
 
 

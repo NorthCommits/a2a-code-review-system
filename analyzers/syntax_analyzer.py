@@ -31,8 +31,7 @@ class SyntaxAnalyzer:
         """Initialize syntax analyzer"""
         self.logger = get_logger(__name__)
         
-        # Initialize OpenAI client
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        # OpenAI API key will be loaded from environment when needed
         
         # Style rules configuration
         self.style_rules = {
@@ -75,7 +74,8 @@ class SyntaxAnalyzer:
                 suggestions.extend(self._generate_style_suggestions(code))
                 
                 # Use LLM for advanced analysis if available
-                if openai.api_key and openai.api_key != "your_openai_api_key_here":
+                api_key = os.getenv("OPENAI_API_KEY")
+                if api_key and api_key != "your_openai_api_key_here":
                     llm_analysis = await self._llm_analysis(code)
                     observations.extend(llm_analysis.get("observations", []))
                     errors.extend(llm_analysis.get("errors", []))
@@ -285,7 +285,9 @@ class SyntaxAnalyzer:
     async def _llm_analysis(self, code: str) -> Dict[str, Any]:
         """Use LLM for advanced syntax analysis"""
         try:
-            if not openai.api_key or openai.api_key == "your_openai_api_key_here":
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key or api_key == "your_openai_api_key_here":
+                self.logger.warning("OpenAI API key not set, skipping LLM analysis")
                 return {"observations": [], "errors": [], "suggestions": []}
             
             prompt = f"""
@@ -315,7 +317,8 @@ class SyntaxAnalyzer:
             }}
             """
             
-            response = await openai.ChatCompletion.acreate(
+            client = openai.OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1000,
@@ -330,6 +333,7 @@ class SyntaxAnalyzer:
             
         except Exception as e:
             self.logger.warning(f"LLM analysis failed: {e}")
+            self.logger.warning(f"Error type: {type(e).__name__}")
             return {"observations": [], "errors": [], "suggestions": []}
     
     def _generate_corrected_code(self, code: str, errors: List[Dict[str, Any]], suggestions: List[Dict[str, Any]]) -> Optional[str]:

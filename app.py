@@ -629,7 +629,8 @@ class A2ACodeReviewApp:
             Corrected code:
             """
             
-            response = openai.ChatCompletion.create(
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2000,
@@ -717,8 +718,7 @@ class A2ACodeReviewApp:
         self.realtime_updates.display_system_overview()
         
         # Agent capabilities
-        with st.expander(" Agent Capabilities"):
-            self.realtime_updates.display_agent_capabilities()
+        self.realtime_updates.display_agent_capabilities()
 
 
 def main():

@@ -64,9 +64,13 @@ class SecurityAgent(RemoteAgent):
             port=port
         )
         
-        self.logger = A2ALogger("security-scanner-001", "remote")
-        
-        self.logger.info("Security agent initialized")
+        # No logger initialization to avoid pickling issues
+        pass
+    
+    def _get_logger(self):
+        """Get logger instance (lazy initialization to avoid pickling issues)"""
+        # Create a new logger instance each time to avoid pickling issues
+        return A2ALogger("security-scanner-001", "remote")
     
     async def analyze_code(self, task_params: Dict[str, Any]) -> Optional[AnalysisResult]:
         """
@@ -95,7 +99,7 @@ class SecurityAgent(RemoteAgent):
                     }]
                 )
             
-            self.logger.info(f"Starting security analysis for {language} code")
+            self._get_logger().info(f"Starting security analysis for {language} code")
             
             # Security analysis logic
             observations = []
@@ -151,11 +155,11 @@ class SecurityAgent(RemoteAgent):
                 }
             )
             
-            self.logger.info(f"Security analysis completed: {len(observations)} issues found")
+            self._get_logger().info(f"Security analysis completed: {len(observations)} issues found")
             return result
             
         except Exception as e:
-            self.logger.error(f"Security analysis failed: {e}")
+            self._get_logger().error(f"Security analysis failed: {e}")
             return self.create_analysis_result(
                 task_id=task_params.get("task_id", "unknown"),
                 status=TaskStatus.FAILED,

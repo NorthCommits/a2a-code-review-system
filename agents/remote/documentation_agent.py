@@ -64,9 +64,13 @@ class DocumentationAgent(RemoteAgent):
             port=port
         )
         
-        self.logger = A2ALogger("documentation-agent-001", "remote")
-        
-        self.logger.info("Documentation agent initialized")
+        # Logger will be initialized when needed to avoid pickling issues
+        pass
+    
+    def _get_logger(self):
+        """Get logger instance (lazy initialization to avoid pickling issues)"""
+        # Create a new logger instance each time to avoid pickling issues
+        return A2ALogger("documentation-agent-001", "remote")
     
     async def analyze_code(self, task_params: Dict[str, Any]) -> Optional[AnalysisResult]:
         """
@@ -95,7 +99,7 @@ class DocumentationAgent(RemoteAgent):
                     }]
                 )
             
-            self.logger.info(f"Starting documentation analysis for {language} code")
+            self._get_logger().info(f"Starting documentation analysis for {language} code")
             
             # Documentation analysis logic
             observations = []
@@ -137,11 +141,11 @@ class DocumentationAgent(RemoteAgent):
                 }
             )
             
-            self.logger.info(f"Documentation analysis completed: score {doc_score}/100")
+            self._get_logger().info(f"Documentation analysis completed: score {doc_score}/100")
             return result
             
         except Exception as e:
-            self.logger.error(f"Documentation analysis failed: {e}")
+            self._get_logger().error(f"Documentation analysis failed: {e}")
             return self.create_analysis_result(
                 task_id=task_params.get("task_id", "unknown"),
                 status=TaskStatus.FAILED,

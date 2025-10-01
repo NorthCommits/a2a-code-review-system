@@ -64,9 +64,13 @@ class PerformanceAgent(RemoteAgent):
             port=port
         )
         
-        self.logger = A2ALogger("performance-analyzer-001", "remote")
-        
-        self.logger.info("Performance agent initialized")
+        # Logger will be initialized when needed to avoid pickling issues
+        pass
+    
+    def _get_logger(self):
+        """Get logger instance (lazy initialization to avoid pickling issues)"""
+        # Create a new logger instance each time to avoid pickling issues
+        return A2ALogger("performance-analyzer-001", "remote")
     
     async def analyze_code(self, task_params: Dict[str, Any]) -> Optional[AnalysisResult]:
         """
@@ -95,7 +99,7 @@ class PerformanceAgent(RemoteAgent):
                     }]
                 )
             
-            self.logger.info(f"Starting performance analysis for {language} code")
+            self._get_logger().info(f"Starting performance analysis for {language} code")
             
             # Performance analysis logic
             observations = []
@@ -173,11 +177,11 @@ class PerformanceAgent(RemoteAgent):
                 }
             )
             
-            self.logger.info(f"Performance analysis completed: {len(observations)} issues found")
+            self._get_logger().info(f"Performance analysis completed: {len(observations)} issues found")
             return result
             
         except Exception as e:
-            self.logger.error(f"Performance analysis failed: {e}")
+            self._get_logger().error(f"Performance analysis failed: {e}")
             return self.create_analysis_result(
                 task_id=task_params.get("task_id", "unknown"),
                 status=TaskStatus.FAILED,
