@@ -161,7 +161,7 @@ class ResultsDisplayComponent:
         summary = results.get("summary", {})
         
         if summary:
-            st.subheader("📊 Summary")
+            st.subheader("Summary")
             
             col1, col2, col3, col4 = st.columns(4)
             
@@ -184,27 +184,27 @@ class ResultsDisplayComponent:
             # Quality score visualization
             quality_score = summary.get("quality_score", 0)
             if quality_score >= 80:
-                st.success(f"🎉 Excellent code quality! Score: {quality_score}/100")
+                st.success(f"Excellent code quality! Score: {quality_score}/100")
             elif quality_score >= 60:
-                st.info(f"👍 Good code quality. Score: {quality_score}/100")
+                st.info(f"Good code quality. Score: {quality_score}/100")
             elif quality_score >= 40:
-                st.warning(f"⚠️ Code quality needs improvement. Score: {quality_score}/100")
+                st.warning(f"Code quality needs improvement. Score: {quality_score}/100")
             else:
-                st.error(f"🚨 Poor code quality. Score: {quality_score}/100")
+                st.error(f"Poor code quality. Score: {quality_score}/100")
     
     def _render_detailed_results(self, results: Dict[str, Any]):
         """Render detailed analysis results"""
         # Observations
         observations = results.get("observations", [])
         if observations:
-            st.subheader("🔍 Observations")
+            st.subheader("Observations")
             for i, obs in enumerate(observations, 1):
                 self._render_observation(obs, i)
         
         # Errors
         errors = results.get("errors", [])
         if errors:
-            st.subheader("❌ Errors")
+            st.subheader("Errors")
             
             # Handle both dict and list formats
             if isinstance(errors, dict):
@@ -212,12 +212,12 @@ class ResultsDisplayComponent:
                 non_critical_errors = errors.get("non_critical", [])
                 
                 if critical_errors:
-                    st.error("🚨 Critical Errors")
+                    st.error("Critical Errors")
                     for i, error in enumerate(critical_errors, 1):
                         self._render_error(error, i, "critical")
                 
                 if non_critical_errors:
-                    st.warning("⚠️ Non-Critical Errors")
+                    st.warning("Non-Critical Errors")
                     for i, error in enumerate(non_critical_errors, 1):
                         self._render_error(error, i, "warning")
             else:
@@ -229,14 +229,14 @@ class ResultsDisplayComponent:
         # Suggestions
         suggestions = results.get("suggestions", [])
         if suggestions:
-            st.subheader("💡 Suggestions")
+            st.subheader("Suggestions")
             for i, suggestion in enumerate(suggestions, 1):
                 self._render_suggestion(suggestion, i)
         
         # Recommendations
         recommendations = results.get("recommendations", [])
         if recommendations:
-            st.subheader("📋 Recommendations")
+            st.subheader("Recommendations")
             for i, rec in enumerate(recommendations, 1):
                 self._render_recommendation(rec, i)
     
@@ -312,32 +312,32 @@ class ResultsDisplayComponent:
             
             priority = rec.get('priority', 'medium')
             if priority == 'critical':
-                st.error("🚨 Critical Priority")
+                st.error("Critical Priority")
             elif priority == 'high':
-                st.error("🔴 High Priority")
+                st.error("High Priority")
             elif priority == 'medium':
-                st.warning("🟡 Medium Priority")
+                st.warning("Medium Priority")
             else:
-                st.info("🟢 Low Priority")
+                st.info("Low Priority")
     
     def _render_corrected_code(self, results: Dict[str, Any]):
         """Render corrected code if available"""
         corrected_code = results.get("corrected_code")
         
         if corrected_code:
-            st.subheader("🔧 Corrected Code")
+            st.subheader("Corrected Code")
             
             col1, col2 = st.columns([4, 1])
             with col1:
                 st.code(corrected_code, language='python')
             
             with col2:
-                if st.button("📋 Copy Code"):
+                if st.button("Copy Code"):
                     st.write("Code copied to clipboard!")
     
     def _render_download_options(self, results: Dict[str, Any]):
         """Render download options"""
-        st.subheader("📥 Download Results")
+        st.subheader("Download Results")
         
         col1, col2, col3 = st.columns(3)
         
@@ -345,7 +345,7 @@ class ResultsDisplayComponent:
             # Download as JSON
             json_data = json.dumps(results, indent=2)
             st.download_button(
-                label="📄 Download JSON",
+                label="Download JSON",
                 data=json_data,
                 file_name=f"analysis_results_{results.get('analysis_id', 'unknown')}.json",
                 mime="application/json"
@@ -356,7 +356,7 @@ class ResultsDisplayComponent:
             corrected_code = results.get("corrected_code")
             if corrected_code:
                 st.download_button(
-                    label="🐍 Download Corrected Code",
+                    label="Download Corrected Code",
                     data=corrected_code,
                     file_name=f"corrected_code_{results.get('analysis_id', 'unknown')}.py",
                     mime="text/plain"
@@ -366,7 +366,7 @@ class ResultsDisplayComponent:
             # Download summary report
             summary_text = self._generate_summary_report(results)
             st.download_button(
-                label="📋 Download Summary",
+                label="Download Summary",
                 data=summary_text,
                 file_name=f"analysis_summary_{results.get('analysis_id', 'unknown')}.txt",
                 mime="text/plain"
@@ -432,7 +432,7 @@ class ProgressComponent:
     def render(self):
         """Render the progress component"""
         try:
-            st.subheader("🔄 Analysis Progress")
+            st.subheader("Analysis Progress")
             
             # Progress bar
             progress_bar = st.progress(0)

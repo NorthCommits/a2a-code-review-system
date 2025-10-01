@@ -44,161 +44,65 @@ class MainInterface:
     def render(self):
         """Render the main interface"""
         try:
-            # Create tabs for different sections
-            tab1, tab2, tab3 = st.tabs(["📝 Code Analysis", "📊 Results", "🔧 System"])
+            # Main code input section
+            st.header("Code Analysis")
             
-            with tab1:
-                self._render_code_analysis_tab()
+            # Get analysis options from session state
+            options = st.session_state.get("analysis_options", {})
             
-            with tab2:
-                self._render_results_tab()
+            # Render code input component
+            code = self.code_input.render()
             
-            with tab3:
-                self._render_system_tab()
+            if code:
+                # Analysis configuration
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    # Show selected analysis types
+                    selected_types = []
+                    if options.get("include_security", True):
+                        selected_types.append("Security")
+                    if options.get("include_performance", True):
+                        selected_types.append("Performance")
+                    if options.get("include_documentation", True):
+                        selected_types.append("Documentation")
+                    if options.get("include_test_coverage", False):
+                        selected_types.append("Test Coverage")
+                    
+                    if selected_types:
+                        st.info(f"Selected analyses: {', '.join(selected_types)}")
+                    else:
+                        st.warning("No analysis types selected. Please configure analysis options in the sidebar.")
+                
+                with col2:
+                    # Analyze button
+                    if st.button("Analyze Code", type="primary", use_container_width=True):
+                        if selected_types:
+                            language = options.get("language", "python")
+                            self._run_analysis(code, language, options)
+                        else:
+                            st.error("Please select at least one analysis type in the sidebar.")
+            
+            # Show analysis progress if running
+            if st.session_state.get("system_status") == "analyzing":
+                st.divider()
+                st.subheader("Analysis Progress")
+                with st.spinner("Running comprehensive code analysis..."):
+                    st.info("Analyzing your code using multiple specialized agents...")
+            
+            # Show results if available
+            st.divider()
+            results = st.session_state.get("analysis_results")
+            
+            if results:
+                st.header("Analysis Results")
+                self.results_display.render(results)
+            else:
+                st.info("Submit code above to see analysis results here.")
                 
         except Exception as e:
             self.logger.error(f"Error rendering main interface: {e}")
             st.error(f"Interface error: {e}")
-    
-    def _render_code_analysis_tab(self):
-        """Render the code analysis tab"""
-        st.header("Code Analysis")
-        
-        # Get analysis options from session state
-        options = st.session_state.get("analysis_options", {})
-        
-        # Render code input component
-        code = self.code_input.render()
-        
-        if code:
-            # Analysis options
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                st.subheader("Analysis Configuration")
-                
-                # Language selection
-                language = options.get("language", "python")
-                
-                # Analysis type checkboxes
-                analysis_types = {
-                    "Syntax & Style": options.get("include_syntax", True),
-                    "Security Scan": options.get("include_security", True),
-                    "Performance": options.get("include_performance", True),
-                    "Documentation": options.get("include_documentation", True),
-                    "Test Coverage": options.get("include_test_coverage", False)
-                }
-                
-                # Display selected analysis types
-                selected_types = [name for name, selected in analysis_types.items() if selected]
-                if selected_types:
-                    st.info(f"Selected analyses: {', '.join(selected_types)}")
-                else:
-                    st.warning("No analysis types selected. Please configure analysis options in the sidebar.")
-            
-            with col2:
-                # Analyze button
-                if st.button("🔍 Analyze Code", type="primary", use_container_width=True):
-                    if selected_types:
-                        self._run_analysis(code, language, options)
-                    else:
-                        st.error("Please select at least one analysis type in the sidebar.")
-            
-            # Show current analysis progress
-            if st.session_state.system_status == "analyzing":
-                self.progress.render()
-    
-    def _render_results_tab(self):
-        """Render the results tab"""
-        st.header("Analysis Results")
-        
-        results = st.session_state.get("analysis_results")
-        
-        if results:
-            self.results_display.render(results)
-        else:
-            st.info("No analysis results yet. Submit code for analysis in the Code Analysis tab.")
-    
-    def _render_system_tab(self):
-        """Render the system information tab"""
-        st.header("System Information")
-        
-        # Agent status
-        st.subheader("Agent Status")
-        try:
-            status_info = asyncio.run(self._get_agent_status())
-            
-            if "agents" in status_info and "registry" in status_info["agents"]:
-                registry_info = status_info["agents"]["registry"]
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Total Agents", registry_info.get("total_agents", 0))
-                with col2:
-                    st.metric("Active Agents", registry_info.get("active_agents", 0))
-                with col3:
-                    st.metric("Healthy Agents", registry_info.get("healthy_agents", 0))
-                
-                # Agent details
-                if "agents" in status_info["agents"]:
-                    st.subheader("Agent Details")
-                    agents_info = status_info["agents"]["agents"]
-                    
-                    for agent_id, agent_info in agents_info.items():
-                        with st.expander(f"Agent: {agent_info.get('name', agent_id)}"):
-                            col1, col2 = st.columns(2)
-                            
-                            with col1:
-                                st.write(f"**Status:** {agent_info.get('status', 'unknown')}")
-                                st.write(f"**Health:** {agent_info.get('health_status', 'unknown')}")
-                                st.write(f"**Active Tasks:** {agent_info.get('active_tasks', 0)}")
-                            
-                            with col2:
-                                st.write(f"**Total Tasks:** {agent_info.get('total_tasks', 0)}")
-                                if agent_info.get('response_time'):
-                                    st.write(f"**Response Time:** {agent_info['response_time']:.2f}s")
-                                if agent_info.get('last_seen'):
-                                    st.write(f"**Last Seen:** {agent_info['last_seen']}")
-            else:
-                st.warning("No agent information available")
-                
-        except Exception as e:
-            st.error(f"Error getting agent status: {e}")
-        
-        # System capabilities
-        st.subheader("Analysis Capabilities")
-        try:
-            capabilities = self.coordinator.get_analysis_capabilities()
-            
-            for analysis_type, config in capabilities.items():
-                with st.expander(f"📋 {analysis_type.replace('_', ' ').title()}"):
-                    st.write(f"**Capabilities:** {', '.join(config.get('capabilities', []))}")
-                    st.write(f"**Priority:** {config.get('priority', 'N/A')}")
-                    
-        except Exception as e:
-            st.error(f"Error getting capabilities: {e}")
-        
-        # System health
-        st.subheader("System Health")
-        try:
-            health_info = asyncio.run(self.coordinator.health_check())
-            
-            status = health_info.get("status", "unknown")
-            if status == "healthy":
-                st.success("🟢 System is healthy")
-            elif status == "degraded":
-                st.warning("🟡 System is degraded")
-            else:
-                st.error("🔴 System is unhealthy")
-            
-            # Show detailed health information
-            if "coordinator" in health_info:
-                coordinator_health = health_info["coordinator"]
-                st.write(f"**Uptime:** {coordinator_health.get('uptime', 0):.1f} seconds")
-                st.write(f"**Active Tasks:** {coordinator_health.get('active_tasks', 0)}")
-            
-        except Exception as e:
-            st.error(f"Error getting system health: {e}")
     
     def _run_analysis(self, code: str, language: str, options: Dict[str, Any]):
         """
@@ -232,7 +136,7 @@ class MainInterface:
                 # Show success message
                 st.success("Analysis completed successfully!")
                 
-                # Switch to results tab
+                # Rerun to show results
                 st.rerun()
                 
         except Exception as e:
