@@ -26,7 +26,7 @@ async def run_demo():
     
     # Setup logging
     setup_system_logging("INFO")
-    print("🚀 Starting A2A Code Review System Demo")
+    print("Starting A2A Code Review System Demo")
     
     # Sample code for analysis
     sample_code = '''
@@ -82,27 +82,27 @@ class LongClass:
 '''
     
     try:
-        print("📋 Initializing components...")
+        print("Initializing components...")
         
         # Initialize registry
         registry = AgentRegistry("registry/registry_config.json")
-        print(f"✅ Registry initialized with {len(registry.agents)} agents")
+        print(f"Registry initialized with {len(registry.agents)} agents")
         
         # Initialize coordinator
         coordinator = CoordinatorAgent(registry)
         await coordinator.start()
-        print("✅ Coordinator agent started")
+        print("Coordinator agent started")
         
         # Initialize syntax agent (for demonstration)
         syntax_agent = SyntaxAgent(port=5001)
-        print("✅ Syntax agent initialized")
+        print("Syntax agent initialized")
         
         # Register syntax agent with registry (in a real system, this would be done automatically)
         agent_info = syntax_agent.get_agent_info()
         registry.register_agent(agent_info)
-        print("✅ Syntax agent registered with registry")
+        print("Syntax agent registered with registry")
         
-        print("\n🔍 Running code analysis...")
+        print("\nRunning code analysis...")
         
         # Perform analysis
         results = await coordinator.analyze_code(
@@ -116,7 +116,7 @@ class LongClass:
             }
         )
         
-        print("\n📊 Analysis Results:")
+        print("\nAnalysis Results:")
         print("=" * 50)
         
         # Display summary
@@ -129,7 +129,7 @@ class LongClass:
         # Display observations
         observations = results.get("observations", [])
         if observations:
-            print(f"\n🔍 Observations ({len(observations)}):")
+            print(f"\nObservations ({len(observations)}):")
             for i, obs in enumerate(observations[:5], 1):  # Show first 5
                 print(f"  {i}. {obs.get('message', 'No message')}")
                 if obs.get('line_number'):
@@ -139,7 +139,7 @@ class LongClass:
         # Display errors
         errors = results.get("errors", [])
         if errors:
-            print(f"\n❌ Errors ({len(errors)}):")
+            print(f"\nErrors ({len(errors)}):")
             for i, error in enumerate(errors[:5], 1):  # Show first 5
                 print(f"  {i}. {error.get('message', 'No message')}")
                 if error.get('line_number'):
@@ -149,7 +149,7 @@ class LongClass:
         # Display suggestions
         suggestions = results.get("suggestions", [])
         if suggestions:
-            print(f"\n💡 Suggestions ({len(suggestions)}):")
+            print(f"\nSuggestions ({len(suggestions)}):")
             for i, suggestion in enumerate(suggestions[:5], 1):  # Show first 5
                 print(f"  {i}. {suggestion.get('message', 'No message')}")
                 print(f"     Priority: {suggestion.get('priority', 'medium')}")
@@ -157,7 +157,7 @@ class LongClass:
         # Display recommendations
         recommendations = results.get("recommendations", [])
         if recommendations:
-            print(f"\n📋 Recommendations ({len(recommendations)}):")
+            print(f"\nRecommendations ({len(recommendations)}):")
             for i, rec in enumerate(recommendations, 1):
                 print(f"  {i}. {rec.get('message', 'No message')}")
                 print(f"     Action: {rec.get('action', 'No specific action')}")
@@ -166,19 +166,19 @@ class LongClass:
         # Display quality scores
         quality_scores = results.get("quality_scores", {})
         if quality_scores:
-            print(f"\n📈 Quality Scores:")
+            print(f"\nQuality Scores:")
             for category, score in quality_scores.items():
                 if isinstance(score, (int, float)):
                     print(f"  {category.title()}: {score}/100")
         
-        print("\n✅ Demo completed successfully!")
+        print("\nDemo completed successfully!")
         
         # Cleanup
         await coordinator.stop()
-        print("🧹 Cleanup completed")
+        print("Cleanup completed")
         
     except Exception as e:
-        print(f"❌ Demo failed: {e}")
+        print(f"Demo failed: {e}")
         import traceback
         traceback.print_exc()
         return 1
@@ -194,7 +194,7 @@ def main():
     # Check for required environment variables
     openai_key = os.getenv("OPENAI_API_KEY")
     if not openai_key or openai_key == "your_openai_api_key_here":
-        print("⚠️  Warning: OPENAI_API_KEY not set or is placeholder value")
+        print("Warning: OPENAI_API_KEY not set or is placeholder value")
         print("   The system will work with basic analysis but LLM features will be disabled")
         print("   Set OPENAI_API_KEY in your environment for full functionality")
         print()

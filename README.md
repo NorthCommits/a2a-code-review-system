@@ -2,7 +2,7 @@
 
 A comprehensive multi-agent code review and quality assurance system that implements the **Agent-to-Agent (A2A) Protocol** as specified by Google Cloud. This Streamlit-based application uses multiple specialized AI agents to analyze code quality, identify issues, and suggest improvements.
 
-## 🏗️ Architecture
+## Architecture
 
 The system follows a multi-agent architecture with clear separation of concerns:
 
@@ -53,7 +53,7 @@ The system follows a multi-agent architecture with clear separation of concerns:
 └──────────────────┘ └──────────────────────────────────────┘
 ```
 
-## 🚀 Features
+## Features
 
 ### Multi-Agent Analysis
 - **Syntax & Style Analysis**: PEP 8 compliance, linting, formatting
@@ -185,7 +185,7 @@ a2a-code-review-system/
     └── DEPLOYMENT.md               # Deployment instructions
 ```
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 - Python 3.8+
@@ -221,7 +221,7 @@ a2a-code-review-system/
    streamlit run app.py
    ```
 
-## 🎯 Usage
+## Usage
 
 ### Basic Usage
 
@@ -250,7 +250,7 @@ a2a-code-review-system/
 - **Analysis history** tracking
 - **Export capabilities** (JSON, corrected code, summary reports)
 
-## 🔧 Configuration
+## Configuration
 
 ### Agent Registry Configuration
 
@@ -274,7 +274,7 @@ Edit `registry/registry_config.json` to configure available agents:
 
 Modify analysis types and priorities in the coordinator agent configuration.
 
-## 🧪 Testing
+## Testing
 
 Run the test suite:
 
@@ -288,7 +288,7 @@ pytest tests/test_registry/
 pytest tests/test_agents/
 ```
 
-## 📊 A2A Protocol Compliance
+## A2A Protocol Compliance
 
 This system implements the A2A protocol with:
 
@@ -306,7 +306,7 @@ This system implements the A2A protocol with:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
@@ -326,4 +326,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using the A2A Protocol for multi-agent coordination**
+**Built with the A2A Protocol for multi-agent coordination**

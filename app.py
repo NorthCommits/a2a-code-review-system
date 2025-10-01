@@ -19,6 +19,7 @@ from agents.coordinator.coordinator import CoordinatorAgent
 from storage.session_manager import SessionManager
 from ui.main_interface import MainInterface
 from ui.components import CodeInputComponent, ResultsDisplayComponent, ProgressComponent
+from ui.realtime_updates import RealTimeUpdates
 from utils.logger import setup_system_logging, get_logger
 logger = get_logger(__name__)
 from dotenv import load_dotenv
@@ -45,6 +46,7 @@ class A2ACodeReviewApp:
         self.registry = None
         self.coordinator = None
         self.interface = None
+        self.realtime_updates = RealTimeUpdates()
         
         # Initialize session state
         self._initialize_session_state()
@@ -192,7 +194,7 @@ class A2ACodeReviewApp:
             # Configure Streamlit page
             st.set_page_config(
                 page_title="A2A Code Review System",
-                page_icon="🔍",
+                page_icon="",
                 layout="wide",
                 initial_sidebar_state="expanded"
             )
@@ -232,6 +234,10 @@ class A2ACodeReviewApp:
             
             # Sidebar with system information
             self._render_sidebar()
+            
+            # Add real-time updates section
+            st.divider()
+            self._render_realtime_section()
             
         except Exception as e:
             logger.error(f"Application error: {e}")
@@ -410,13 +416,13 @@ class A2ACodeReviewApp:
                 
                 # Show suggestions if any
                 if results.get("suggestions"):
-                    st.subheader("💡 Suggestions")
+                    st.subheader("Suggestions")
                     for suggestion in results["suggestions"]:
                         st.info(f"• {suggestion}")
                 
                 # Show code metrics
                 if "code_metrics" in results:
-                    st.subheader("📊 Code Metrics")
+                    st.subheader("Code Metrics")
                     metrics = results["code_metrics"]
                     col1, col2, col3 = st.columns(3)
                     
@@ -428,23 +434,23 @@ class A2ACodeReviewApp:
                         st.metric("Classes", metrics.get("classes", 0))
                 
                 # Show analysis status
-                st.subheader("🔍 Analysis Status")
+                st.subheader("Analysis Status")
                 findings = results.get("findings", {})
                 for analysis_type, data in findings.items():
                     status = data.get("status", "unknown")
                     if status == "completed":
-                        st.success(f"✅ {analysis_type.title()} Analysis: Completed")
+                        st.success(f"{analysis_type.title()} Analysis: Completed")
                     elif status == "skipped":
-                        st.info(f"⏭️ {analysis_type.title()} Analysis: Skipped")
+                        st.info(f"{analysis_type.title()} Analysis: Skipped")
                     else:
-                        st.warning(f"⚠️ {analysis_type.title()} Analysis: {status}")
+                        st.warning(f"{analysis_type.title()} Analysis: {status}")
                 
                 # Show corrected code if available
                 if results.get("corrected_code") and results.get("corrected_code") != results.get("original_code"):
-                    st.subheader("✨ Corrected Code")
+                    st.subheader("Corrected Code")
                     
                     # Create tabs for original vs corrected
-                    tab1, tab2 = st.tabs(["📝 Original Code", "✨ Corrected Code"])
+                    tab1, tab2 = st.tabs(["Original Code", "Corrected Code"])
                     
                     with tab1:
                         st.code(results.get("original_code", ""), language=results.get("language", "python"))
@@ -462,7 +468,7 @@ class A2ACodeReviewApp:
                 
                 # Show detailed findings if available
                 if results.get("findings", {}).get("syntax", {}).get("observations"):
-                    st.subheader("🔍 Detailed Findings")
+                    st.subheader("Detailed Findings")
                     
                     # Show observations
                     observations = results["findings"]["syntax"]["observations"]
@@ -481,7 +487,7 @@ class A2ACodeReviewApp:
                     # Show LLM suggestions
                     llm_suggestions = results.get("suggestions", [])
                     if llm_suggestions:
-                        st.subheader("🤖 LLM Suggestions")
+                        st.subheader("LLM Suggestions")
                         for suggestion in llm_suggestions:
                             if isinstance(suggestion, dict):
                                 priority = suggestion.get("priority", "medium")
@@ -489,11 +495,11 @@ class A2ACodeReviewApp:
                                 if priority == "high":
                                     st.error(f"🔥 {message}")
                                 elif priority == "medium":
-                                    st.warning(f"⚠️ {message}")
+                                    st.warning(f"{message}")
                                 else:
-                                    st.info(f"💡 {message}")
+                                    st.info(f"{message}")
                             else:
-                                st.info(f"💡 {suggestion}")
+                                st.info(f"{suggestion}")
         else:
             st.info("No analysis results yet. Submit code for analysis above.")
     
@@ -512,20 +518,25 @@ class A2ACodeReviewApp:
             # Create analysis result
             analysis_id = f"analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             
-            # Use the real SyntaxAnalyzer with LLM
-            from analyzers.syntax_analyzer import SyntaxAnalyzer
-            
-            with st.spinner("Running LLM-based analysis..."):
-                analyzer = SyntaxAnalyzer()
-                
-                # Run async analysis
+            # Use the A2A coordinator for multi-agent analysis
+            with st.spinner("Running A2A multi-agent analysis..."):
+                # Run async analysis using coordinator
                 import asyncio
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
-                    analysis_result = loop.run_until_complete(
-                        analyzer.analyze_code(code, language, options)
-                    )
+                    if self.coordinator:
+                        # Use the full A2A system with agent communication
+                        analysis_result = loop.run_until_complete(
+                            self.coordinator.analyze_code(code, language, options)
+                        )
+                    else:
+                        # Fallback to direct analyzer if coordinator not available
+                        from analyzers.syntax_analyzer import SyntaxAnalyzer
+                        analyzer = SyntaxAnalyzer()
+                        analysis_result = loop.run_until_complete(
+                            analyzer.analyze_code(code, language, options)
+                        )
                 finally:
                     loop.close()
                 
@@ -694,6 +705,20 @@ class A2ACodeReviewApp:
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.session_state.system_status = "error"
+    
+    def _render_realtime_section(self):
+        """Render real-time updates section"""
+        st.header(" Real-time A2A System Status")
+        
+        # Agent status
+        self.realtime_updates.display_agent_status()
+        
+        # System overview
+        self.realtime_updates.display_system_overview()
+        
+        # Agent capabilities
+        with st.expander(" Agent Capabilities"):
+            self.realtime_updates.display_agent_capabilities()
 
 
 def main():
